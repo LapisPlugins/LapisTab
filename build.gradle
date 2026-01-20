@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id "com.gradleup.shadow" version "9.0.0-rc1"
+}
+
+group = 'net.lapismc'
+archivesBaseName = "LapisTab"
+version = '0.1.0'
+defaultTasks 'clean', 'build', 'shadowJar'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    //Personal Repo
+    maven {
+        name = "lapismc-repo"
+        url = "https://maven.lapismc.net/releases/"
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'net.lapismc:AFKPlus:3.5.1'
+    compileOnly('net.milkbowl.vault:VaultAPI:1.7')
+    implementation 'net.lapismc:LapisCore:1.13.9'
+}
+
+processResources {
+    filter {
+        it.replace('${project.version}', project.getVersion())
+    }
+}
+
+shadowJar {
+    archiveFileName.set(archivesBaseName + "-" + project.getVersion() + ".jar")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'javax/**'
+    relocate("net.lapismc.lapiscore", "net.lapismc.lapistab.core")
+}
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier.set('javadoc')
+    from javadoc
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar, shadowJar
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "https://reposilite.dnablue2112.com/releases/"
+            credentials {
+                username reposiliteUser
+                password reposilitePassword
+            }
+        }
+    }
+}
+
+def targetJavaVersion = 21
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}

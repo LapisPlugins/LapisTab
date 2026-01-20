@@ -1,0 +1,6 @@
+name: LapisTab
+version: ${project.version}
+main: net.lapismc.lapisTab.LapisTab
+api-version: '1.21'
+soft-depends:
+  - AFKPlus
