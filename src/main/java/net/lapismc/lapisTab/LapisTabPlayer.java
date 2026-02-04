@@ -2,7 +2,6 @@ package net.lapismc.lapisTab;
 
 import net.lapismc.lapisTab.hooks.TabHook;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -10,6 +9,9 @@ import org.bukkit.scoreboard.Team;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * This class represents a single Player on the server and manages their scoreboard to provide prefix and suffix
+ */
 public class LapisTabPlayer {
 
     private final LapisTab plugin;
@@ -20,14 +22,32 @@ public class LapisTabPlayer {
     private String suffix = "";
     private Team team;
 
-    public LapisTabPlayer(LapisTab plugin, OfflinePlayer op) {
-        this(plugin, op.getUniqueId());
-    }
-
+    /**
+     * This should only be accessed internally by LapisTab
+     * For API access use {@link LapisTab#getPlayer(UUID)}
+     *
+     * @param plugin The LapisTab instance
+     * @param uuid   The UUID of the player being controlled
+     */
     public LapisTabPlayer(LapisTab plugin, UUID uuid) {
         this.plugin = plugin;
         this.uuid = uuid;
         getTeam();
+        //Cannot set team options if team is null, this means player isn't online
+        if (team != null) {
+            //Ensure team options are set correctly
+            if (!getCollisionRule().equals(plugin.getTeamOption("TeamOptions.PlayerBump"))) {
+                setCollisionRule(plugin.getTeamOption("TeamOptions.PlayerBump"));
+            }
+            if (!getNameTagVisibility().equals(plugin.getTeamOption("TeamOptions.NameTagVisibility"))) {
+                setNameTagVisibility(plugin.getTeamOption("TeamOptions.NameTagVisibility"));
+            }
+            if (!getDeathMessageVisibility().equals(plugin.getTeamOption("TeamOptions.DeathMessageVisibility"))) {
+                setDeathMessageVisibility(plugin.getTeamOption("TeamOptions.DeathMessageVisibility"));
+            }
+        }
+        TabPlayerCreatedEvent event = new TabPlayerCreatedEvent(this);
+        Bukkit.getPluginManager().callEvent(event);
     }
 
     /*
@@ -130,6 +150,10 @@ public class LapisTabPlayer {
         overrideSuffixes.remove(hook);
     }
 
+    /*
+    Team Options
+     */
+
     /**
      * Check how this player collides with other players and entities
      *
@@ -149,6 +173,47 @@ public class LapisTabPlayer {
     }
 
     /**
+     * Check how this players' nametag is shown to other players
+     *
+     * @return the OptionStatus associated with this players NAME_TAG_VISIBILITY
+     */
+    public Team.OptionStatus getNameTagVisibility() {
+        return team.getOption(Team.Option.NAME_TAG_VISIBILITY);
+    }
+
+    /**
+     * Set the NAME_TAG_VISIBILITY option for this player
+     *
+     * @param status The status you wish to set the rule to
+     */
+    public void setNameTagVisibility(Team.OptionStatus status) {
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, status);
+    }
+
+    /**
+     * Check how this players' death message is shown to other players
+     *
+     * @return the OptionStatus associated with this players DEATH_MESSAGE_VISIBILITY
+     */
+    public Team.OptionStatus getDeathMessageVisibility() {
+        return team.getOption(Team.Option.DEATH_MESSAGE_VISIBILITY);
+    }
+
+    /**
+     * Set the DEATH_MESSAGE_VISIBILITY option for this player
+     *
+     * @param status The status you wish to set the rule to
+     */
+    public void setDeathMessageVisibility(Team.OptionStatus status) {
+        team.setOption(Team.Option.DEATH_MESSAGE_VISIBILITY, status);
+    }
+
+
+    /*
+    Direct scoreboard access
+     */
+
+    /**
      * Get or generate a scoreboard for us to use
      *
      * @return the players scoreboard
@@ -160,9 +225,9 @@ public class LapisTabPlayer {
     /**
      * Get or generate the players team
      *
-     * @return the players team
+     * @return the players team, or null if the player is offline
      */
-    private Team getTeam() {
+    protected Team getTeam() {
         Player p = Bukkit.getPlayer(uuid);
         if (p == null)
             return null;
@@ -178,6 +243,10 @@ public class LapisTabPlayer {
         return team;
     }
 
+    /*
+    Util methods
+     */
+
     /**
      * Get the players UUID
      *
@@ -187,6 +256,11 @@ public class LapisTabPlayer {
         return this.uuid;
     }
 
+    /**
+     * This is a repeating task used internally to update the players prefix and suffix
+     *
+     * @return a runnable task
+     */
     public Runnable getRepeatingTask() {
         return () -> {
             //Don't run this code if the player is offline

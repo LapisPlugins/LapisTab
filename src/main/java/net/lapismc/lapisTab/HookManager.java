@@ -6,11 +6,20 @@ import net.lapismc.lapisTab.hooks.TabHook;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class manages the Hooks currently registered locally and allows adding hooks from external plugins
+ */
 public class HookManager {
 
     private final LapisTab plugin;
     private final List<TabHook> hooks = new ArrayList<>();
 
+    /**
+     * This should only be used internally by LapisTab.
+     * For API access use, {@link LapisTab#getHookManager()}
+     *
+     * @param plugin The LapisTab instance
+     */
     public HookManager(LapisTab plugin) {
         this.plugin = plugin;
         //Register our own hooks on the first tick of the server
@@ -45,14 +54,20 @@ public class HookManager {
         return null;
     }
 
+    /**
+     * Get a list of the current hooks, this includes hooks that are not currently enabled
+     *
+     * @return a list of loaded hooks
+     */
+    public List<TabHook> getHooks() {
+        return hooks;
+    }
+
+    /**
+     * Registers any local hooks that are built into LapisTab
+     */
     private void registerLocalHooks() {
-        hooks.add(new AFKPlus(plugin));
-        for (TabHook hook : hooks) {
-            if (hook.checkForHook()) {
-                hook.enableHook();
-                plugin.getLogger().info("Hook " + hook.hookName() + " was successfully loaded");
-            }
-        }
+        registerHook(new AFKPlus(plugin));
     }
 
 }

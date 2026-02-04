@@ -1,0 +1,19 @@
+ConfigVersion: 1
+
+#These settings are exposed from the Scoreboard Teams that this plugin uses to set Prefix and Suffix
+#These can be set to true or false and will apply to all players
+TeamOptions:
+  #Can players bump into each other by default
+  #This can be overridden by hooks like AFKPlus making players not bump when AFK
+  PlayerBump: true
+  #Should players be able to see each others name tags
+  NameTagVisibility: true
+  #Should players be able to see each others death messages
+  DeathMessageVisibility: true
+
+Hooks:
+  AFKPlus:
+    #Should players be able to be bumped when AFK
+    Bump: false
+    #Should the nametag of AFK players be visible
+    Nametag: true

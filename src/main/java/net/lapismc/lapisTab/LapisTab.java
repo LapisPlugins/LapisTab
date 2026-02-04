@@ -1,16 +1,22 @@
 package net.lapismc.lapisTab;
 
+import net.lapismc.lapiscore.LapisCoreConfiguration;
 import net.lapismc.lapiscore.LapisCorePlugin;
+import net.lapismc.lapiscore.utils.LapisCoreFileWatcher;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.scoreboard.Team;
 
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Main class
+ */
 public final class LapisTab extends LapisCorePlugin implements Listener {
 
     private final HashMap<UUID, LapisTabPlayer> players = new HashMap<>();
@@ -21,12 +27,14 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
     public void onEnable() {
         //Get VaultAPI Chat component
         setupVault();
+        registerConfiguration(new LapisCoreConfiguration(this, 1, 1));
+        fileWatcher = new LapisCoreFileWatcher(this);
         hookManager = new HookManager(this);
-        tasks.runTaskTimer(() -> {
+        tasks.addTask(tasks.runTaskTimer(() -> {
             for (LapisTabPlayer player : players.values()) {
                 player.getRepeatingTask().run();
             }
-        }, 20, 20, false);
+        }, 20, 20, false));
         Bukkit.getPluginManager().registerEvents(this, this);
         super.onEnable();
     }
@@ -36,19 +44,59 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
         super.onDisable();
     }
 
+    /**
+     * Get the loaded instance of the HookManager
+     *
+     * @return HookManager instance
+     */
+    public HookManager getHookManager() {
+        return hookManager;
+    }
+
+    /**
+     * Get the LapisTabPlayer object for a given player.
+     * Ideally this player should currently be online as most of the class functions rely on it
+     *
+     * @param uuid The UUID of the player
+     * @return a LapisTabPlayer object for the UUID given
+     */
     public LapisTabPlayer getPlayer(UUID uuid) {
         if (!players.containsKey(uuid))
             players.put(uuid, new LapisTabPlayer(this, uuid));
         return players.get(uuid);
     }
 
+    /**
+     * Convert a boolean in the config to a Team Option for a players team
+     *
+     * @param path The path of the boolean in the config
+     * @return Always if true, never if false
+     */
+    public Team.OptionStatus getTeamOption(String path) {
+        return getConfig().getBoolean(path) ? Team.OptionStatus.ALWAYS : Team.OptionStatus.NEVER;
+    }
+
+    /**
+     * Get the chat provider that was loaded with the plugin, this is generally a permissions plugin
+     *
+     * @return the VaultAPI chat provider
+     */
     public Chat getChatProvider() {
         return chat;
     }
 
+    /**
+     * Load and store a LapisTabPlayer object when a player joins
+     * This ensures that they have an object regardless of when they last joined, if ever
+     *
+     * @param e PlayerJoinEvent
+     */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        getPlayer(e.getPlayer().getUniqueId());
+        //Make sure we call getTeam here to make sure that the team is generated and set correctly
+        //This could be an issue if their object was generated while the player was offline
+        //This would give a null result for their team
+        getPlayer(e.getPlayer().getUniqueId()).getTeam();
     }
 
     private void setupVault() {
