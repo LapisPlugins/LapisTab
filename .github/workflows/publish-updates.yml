@@ -42,7 +42,7 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/libs/*.jar"
+          artifacts: "build/libs/LapisTab-${{ env.COMMIT_VER_TAG }}.jar"
           body: ${{ env.CHANGELOG }}
           tag: ${{ env.COMMIT_VER_TAG }}
           name: "Update ${{ env.COMMIT_VER_TAG }}"

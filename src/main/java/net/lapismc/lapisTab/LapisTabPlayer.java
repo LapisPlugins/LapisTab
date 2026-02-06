@@ -1,5 +1,6 @@
 package net.lapismc.lapisTab;
 
+import net.kyori.adventure.text.Component;
 import net.lapismc.lapisTab.hooks.TabHook;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -148,6 +149,23 @@ public class LapisTabPlayer {
      */
     public void clearOverrideSuffix(TabHook hook) {
         overrideSuffixes.remove(hook);
+    }
+
+    /*
+    Tab List Header and Footer Management
+     */
+
+    public void updateHeaderFooter() {
+        Player p = Bukkit.getPlayer(getUUID());
+        //Don't run if the player isn't online
+        if (p == null)
+            return;
+        //Giving the OfflinePlayer to the method so it can replace PAPI placeholders
+        String header = plugin.config.getMessage("TabList.Header", Bukkit.getOfflinePlayer(getUUID()));
+        String footer = plugin.config.getMessage("TabList.Footer", Bukkit.getOfflinePlayer(getUUID()));
+        //Only send the header or footer if they are set
+        p.sendPlayerListHeaderAndFooter(header.isEmpty() ? Component.empty() : Component.text(header),
+                footer.isEmpty() ? Component.empty() : Component.text(footer));
     }
 
     /*

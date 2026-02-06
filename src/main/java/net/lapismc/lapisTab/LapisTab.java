@@ -27,14 +27,24 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
     public void onEnable() {
         //Get VaultAPI Chat component
         setupVault();
-        registerConfiguration(new LapisCoreConfiguration(this, 1, 1));
+        registerConfiguration(new LapisCoreConfiguration(this, 2, 2));
         fileWatcher = new LapisCoreFileWatcher(this);
         hookManager = new HookManager(this);
+
+        int prefixSuffixUpdateSpeed = getConfig().getInt("UpdateSpeed.PrefixSuffix");
         tasks.addTask(tasks.runTaskTimer(() -> {
             for (LapisTabPlayer player : players.values()) {
                 player.getRepeatingTask().run();
             }
-        }, 20, 20, false));
+        }, 20, prefixSuffixUpdateSpeed, false));
+
+        int headerFooterUpdateSpeed = getConfig().getInt("UpdateSpeed.HeaderFooter");
+        tasks.addTask(tasks.runTaskTimer(() -> {
+            for (LapisTabPlayer player : players.values()) {
+                player.updateHeaderFooter();
+            }
+        }, 20, headerFooterUpdateSpeed, false));
+
         Bukkit.getPluginManager().registerEvents(this, this);
         super.onEnable();
     }

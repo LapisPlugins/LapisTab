@@ -1,4 +1,10 @@
-ConfigVersion: 1
+ConfigVersion: 2
+
+TabList:
+  #Header and Footer strings can contain '&' colour codes and PAPI placeholders
+  #You can leave either or both empty to disable the header and or footer
+  Header: ""
+  Footer: ""
 
 AFKPlus:
   Prefix: "&4AFK"
