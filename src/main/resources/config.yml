@@ -1,8 +1,13 @@
-ConfigVersion: 2
+ConfigVersion: 3
 
+#How often should we update different parts. These values are in game ticks (20 = one second, 1200 = one minute)
 UpdateSpeed:
+  #Prefixes and Suffixes are updated once a second by default. This should be kept fast
   PrefixSuffix: 20
+  #Header and Footer can be updated slower, if you aren't using Placeholders, this can be even slower
   HeaderFooter: 100
+  #Tab sorting shouldn't change often, and new players will default to the end of the tab list
+  TabSorting: 1200
 
 #These settings are exposed from the Scoreboard Teams that this plugin uses to set Prefix and Suffix
 #These can be set to true or false and will apply to all players
@@ -14,6 +19,13 @@ TeamOptions:
   NameTagVisibility: true
   #Should players be able to see each others death messages
   DeathMessageVisibility: true
+
+#A list of permissions that define the order of players in the tab list
+#Players with permissions higher in this list will show earlier in the tab list
+#The default uses LuckPerm groups of admin and default
+TabSorting:
+  - "group.admin"
+  - "group.default"
 
 Hooks:
   AFKPlus:

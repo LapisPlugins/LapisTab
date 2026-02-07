@@ -5,13 +5,16 @@ import net.lapismc.lapiscore.LapisCorePlugin;
 import net.lapismc.lapiscore.utils.LapisCoreFileWatcher;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,7 +30,7 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
     public void onEnable() {
         //Get VaultAPI Chat component
         setupVault();
-        registerConfiguration(new LapisCoreConfiguration(this, 2, 2));
+        registerConfiguration(new LapisCoreConfiguration(this, 3, 2, new ArrayList<>()));
         fileWatcher = new LapisCoreFileWatcher(this);
         hookManager = new HookManager(this);
 
@@ -44,6 +47,9 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
                 player.updateHeaderFooter();
             }
         }, 20, headerFooterUpdateSpeed, false));
+
+        int tabSortingUpdateSpeed = getConfig().getInt("UpdateSpeed.TabSorting");
+        tasks.addTask(tasks.runTaskTimer(this::sortTabList, 20, tabSortingUpdateSpeed, false));
 
         Bukkit.getPluginManager().registerEvents(this, this);
         super.onEnable();
@@ -107,6 +113,33 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
         //This could be an issue if their object was generated while the player was offline
         //This would give a null result for their team
         getPlayer(e.getPlayer().getUniqueId()).getTeam();
+    }
+
+    /**
+     * Loops over the permissions used to sort the tab list and finds players who have those permissions.
+     * This could be slightly intensive on servers with more players, and so should be used sparingly.
+     */
+    public void sortTabList() {
+        //The UUID of the player and the assigned priority derived from their permissions
+        HashMap<UUID, Integer> tabListPriority = new HashMap<>();
+        List<String> permissions = getConfig().getStringList("TabSorting");
+        int currentPriority = permissions.size();
+        //Loop over the permissions, if a player has the current permission, assign them the current priority
+        //Ignore the player if they are already assigned, we want the highest value for each player
+        for (String perm : permissions) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (tabListPriority.containsKey(p.getUniqueId()))
+                    continue;
+                if (p.hasPermission(perm))
+                    tabListPriority.put(p.getUniqueId(), currentPriority);
+            }
+            currentPriority--;
+        }
+        //Loop over the results and set their priorities
+        for (UUID uuid : tabListPriority.keySet()) {
+            int priority = tabListPriority.get(uuid);
+            Bukkit.getPlayer(uuid).setPlayerListOrder(priority);
+        }
     }
 
     private void setupVault() {
