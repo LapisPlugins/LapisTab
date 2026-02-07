@@ -114,6 +114,9 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
         //This could be an issue if their object was generated while the player was offline
         //This would give a null result for their team
         getPlayer(e.getPlayer().getUniqueId()).getTeam();
+        //Update the header and the footer in one tick so that it is updated asap for the player
+        //Prefix, Suffix and Tab order are retained during reconnects so don't need to be triggered here
+        getPlayer(e.getPlayer().getUniqueId()).updateHeaderFooter();
     }
 
     /**

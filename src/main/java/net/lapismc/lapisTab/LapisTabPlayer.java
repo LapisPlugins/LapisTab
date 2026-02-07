@@ -1,6 +1,7 @@
 package net.lapismc.lapisTab;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.lapismc.lapisTab.events.TabPlayerCreatedEvent;
 import net.lapismc.lapisTab.hooks.TabHook;
 import org.bukkit.Bukkit;
@@ -156,6 +157,9 @@ public class LapisTabPlayer {
     Tab List Header and Footer Management
      */
 
+    /**
+     * Update the players tab list header and footer
+     */
     public void updateHeaderFooter() {
         Player p = Bukkit.getPlayer(getUUID());
         //Don't run if the player isn't online
@@ -165,8 +169,35 @@ public class LapisTabPlayer {
         String header = plugin.config.getMessage("TabList.Header", Bukkit.getOfflinePlayer(getUUID()));
         String footer = plugin.config.getMessage("TabList.Footer", Bukkit.getOfflinePlayer(getUUID()));
         //Only send the header or footer if they are set
-        p.sendPlayerListHeaderAndFooter(header.isEmpty() ? Component.empty() : Component.text(header),
-                footer.isEmpty() ? Component.empty() : Component.text(footer));
+        //Handle multi-line header or footer
+        TextComponent headerComponent = processMultilineString(header);
+        TextComponent footerComponent = processMultilineString(footer);
+
+        p.sendPlayerListHeaderAndFooter(headerComponent, footerComponent);
+    }
+
+    /**
+     * Process a string with ";" line separators into multiline components
+     *
+     * @param s The delimited string
+     * @return a component with new lines as needed
+     */
+    public TextComponent processMultilineString(String s) {
+        //If there are no line separators, just return the text as a component
+        if (!s.contains(";")) {
+            return Component.text(s);
+        }
+        TextComponent comp = Component.empty();
+        //Loop over each line and add it to the component
+        String[] arr = s.split(";");
+        for (int i = 0; i < arr.length; i++) {
+            comp = comp.append(Component.text(arr[i]));
+            //If we aren't on the last line, add a new line
+            if (i < arr.length - 1) {
+                comp = comp.appendNewline();
+            }
+        }
+        return comp;
     }
 
     /*
