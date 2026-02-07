@@ -1,5 +1,6 @@
-package net.lapismc.lapisTab;
+package net.lapismc.lapisTab.events;
 
+import net.lapismc.lapisTab.LapisTabPlayer;
 import net.lapismc.lapiscore.events.LapisCoreEvent;
 
 /**

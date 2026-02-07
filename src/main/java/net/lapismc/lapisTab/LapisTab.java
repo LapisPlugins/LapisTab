@@ -1,5 +1,6 @@
 package net.lapismc.lapisTab;
 
+import net.lapismc.lapisTab.events.TabOrderingUpdateEvent;
 import net.lapismc.lapiscore.LapisCoreConfiguration;
 import net.lapismc.lapiscore.LapisCorePlugin;
 import net.lapismc.lapiscore.utils.LapisCoreFileWatcher;
@@ -135,6 +136,10 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
             }
             currentPriority--;
         }
+        //Call the event, and use the result from the event to allow plugins to edit the priority before it is applied
+        TabOrderingUpdateEvent event = new TabOrderingUpdateEvent(tabListPriority);
+        Bukkit.getPluginManager().callEvent(event);
+        tabListPriority = event.getTabListPriority();
         //Loop over the results and set their priorities
         for (UUID uuid : tabListPriority.keySet()) {
             int priority = tabListPriority.get(uuid);

@@ -1,6 +1,7 @@
 package net.lapismc.lapisTab;
 
 import net.kyori.adventure.text.Component;
+import net.lapismc.lapisTab.events.TabPlayerCreatedEvent;
 import net.lapismc.lapisTab.hooks.TabHook;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
