@@ -3,6 +3,7 @@ package net.lapismc.lapisTab;
 import net.lapismc.lapisTab.events.TabOrderingUpdateEvent;
 import net.lapismc.lapiscore.LapisCoreConfiguration;
 import net.lapismc.lapiscore.LapisCorePlugin;
+import net.lapismc.lapiscore.compatibility.ServerImplementations;
 import net.lapismc.lapiscore.utils.LapisCoreFileWatcher;
 import net.milkbowl.vault.chat.Chat;
 import org.bukkit.Bukkit;
@@ -29,6 +30,17 @@ public final class LapisTab extends LapisCorePlugin implements Listener {
 
     @Override
     public void onEnable() {
+        //Ensure we are on a Paper server
+        //This plugin uses enough Paper APIs that it will break in its current state on a plain spigot server
+        //Extra layers might be added one day to make it compatable with spigot
+        //But for now its more about making it work in one place
+        if (!new ServerImplementations().getImplementations().contains(ServerImplementations.imp.Paper)) {
+            //Oh no, not paper. Shut it down
+            getLogger().warning("This plugin only works with Paper for now! Please try again on a Paper server");
+            Bukkit.getPluginManager().disablePlugin(this);
+            //Return to ensure that the rest of the setup doesn't run
+            return;
+        }
         //Get VaultAPI Chat component
         setupVault();
         registerConfiguration(new LapisCoreConfiguration(this, 3, 2, new ArrayList<>()));
